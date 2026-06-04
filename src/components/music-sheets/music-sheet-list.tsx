@@ -43,24 +43,36 @@ function TagAddPopover({
   onAdd: (tag: Tag) => void
 }) {
   const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState({ top: 0, right: 0 })
   const [query, setQuery] = useState("")
   const [loading, setLoading] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
+
+  function handleOpen(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect()
+      setPos({ top: r.top + r.height / 2, right: window.innerWidth - r.left + 8 })
+    }
+    setOpen((o) => !o)
+  }
 
   useEffect(() => {
     function handle(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      const target = e.target as Node
+      if (!btnRef.current?.contains(target) && !popoverRef.current?.contains(target)) setOpen(false)
     }
     document.addEventListener("mousedown", handle)
     return () => document.removeEventListener("mousedown", handle)
   }, [])
 
   const existingIds = new Set(sheetTags.map((t) => t.id))
-  const filtered = availableTags.filter(
-    (t) => !existingIds.has(t.id) && t.name.includes(query.toLowerCase().trim())
-  )
   const trimmed = query.trim().toLowerCase()
-  const canCreate = trimmed && !availableTags.some((t) => t.name === trimmed) && !existingIds.has(trimmed)
+  const filtered = availableTags.filter(
+    (t) => !existingIds.has(t.id) && t.name.includes(trimmed)
+  )
+  const canCreate = !!trimmed && !availableTags.some((t) => t.name === trimmed) && !existingIds.has(trimmed)
 
   async function addTag(name: string) {
     setLoading(true)
@@ -71,8 +83,7 @@ function TagAddPopover({
         body: JSON.stringify({ name }),
       })
       if (res.ok) {
-        const tag = await res.json()
-        onAdd(tag)
+        onAdd(await res.json())
         setQuery("")
         setOpen(false)
       }
@@ -81,10 +92,17 @@ function TagAddPopover({
     }
   }
 
+  const emptyMessage = () => {
+    if (trimmed) return "No tags match — press Add to create"
+    if (availableTags.length > 0 && availableTags.every((t) => existingIds.has(t.id))) return "All tags already applied"
+    return "Type to search or create a tag"
+  }
+
   return (
-    <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
+    <div onClick={(e) => e.stopPropagation()}>
       <button
-        onClick={() => setOpen((o) => !o)}
+        ref={btnRef}
+        onClick={handleOpen}
         className="flex items-center gap-0.5 px-1.5 py-0.5 text-xs text-gray-400 border border-dashed border-gray-300 rounded hover:border-gray-400 hover:text-gray-600 transition-colors"
         title="Add tag"
       >
@@ -92,15 +110,21 @@ function TagAddPopover({
         <Plus className="w-2.5 h-2.5" />
       </button>
       {open && (
-        <div className="absolute right-full top-1/2 -translate-y-1/2 mr-2 z-20 w-52 bg-white border border-gray-200 rounded-lg shadow-md">
+        <div
+          ref={popoverRef}
+          style={{ position: "fixed", top: pos.top, right: pos.right, transform: "translateY(-50%)", zIndex: 9999 }}
+          className="w-52 bg-white border border-gray-200 rounded-lg shadow-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="p-1.5 border-b border-gray-100 flex gap-1">
             <input
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && (canCreate || filtered.length === 1)) {
-                  addTag(canCreate ? trimmed : filtered[0].name)
+                if (e.key === "Enter") {
+                  if (canCreate) addTag(trimmed)
+                  else if (filtered.length === 1) addTag(filtered[0].name)
                 }
                 if (e.key === "Escape") setOpen(false)
               }}
@@ -108,30 +132,21 @@ function TagAddPopover({
               className="flex-1 text-xs px-2 py-1 border border-gray-200 rounded outline-none focus:border-gray-400"
             />
             {canCreate && (
-              <button
-                onClick={() => addTag(trimmed)}
-                disabled={loading}
-                className="px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-700 disabled:opacity-50 shrink-0"
-              >
+              <button onClick={() => addTag(trimmed)} disabled={loading}
+                className="px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-700 disabled:opacity-50 shrink-0">
                 Add
               </button>
             )}
           </div>
           <div className="max-h-40 overflow-y-auto py-1">
             {filtered.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => addTag(t.name)}
-                disabled={loading}
-                className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 disabled:opacity-50"
-              >
+              <button key={t.id} onClick={() => addTag(t.name)} disabled={loading}
+                className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 disabled:opacity-50">
                 {t.name}
               </button>
             ))}
             {filtered.length === 0 && !canCreate && (
-              <p className="px-3 py-2 text-xs text-gray-400">
-                {query.trim() ? "Tag already added" : "No tags yet — type to create one"}
-              </p>
+              <p className="px-3 py-2 text-xs text-gray-400">{emptyMessage()}</p>
             )}
           </div>
         </div>
@@ -411,6 +426,7 @@ export function MusicSheetList({
 
   // Sync state when server re-renders with fresh data (e.g. after router.refresh())
   useEffect(() => { setSheets(initialSheets) }, [initialSheets])
+  useEffect(() => { setLocalTags(availableTags) }, [availableTags])
   const [search, setSearch] = useState("")
   const [ownershipFilter, setOwnershipFilter] = useState<"all" | "mine" | "shared">("all")
   const [visibilityFilter, setVisibilityFilter] = useState("")

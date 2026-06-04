@@ -24,10 +24,7 @@ export default async function MusicSheetsPage() {
   })
 
   const [tags, allUsers] = await Promise.all([
-    prisma.tag.findMany({
-      where: { musicSheetTags: { some: {} } },
-      orderBy: { name: "asc" },
-    }),
+    prisma.tag.findMany({ orderBy: { name: "asc" } }),
     prisma.user.findMany({
       where: { status: "ACTIVE" },
       select: { id: true, name: true, email: true },

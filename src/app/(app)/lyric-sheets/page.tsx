@@ -22,10 +22,7 @@ export default async function LyricSheetsPage() {
       },
       orderBy: { updatedAt: "desc" },
     }),
-    prisma.tag.findMany({
-      where: { lyricSheetTags: { some: {} } },
-      orderBy: { name: "asc" },
-    }),
+    prisma.tag.findMany({ orderBy: { name: "asc" } }),
     prisma.user.findMany({
       where: { status: "ACTIVE" },
       select: { id: true, name: true, email: true },
