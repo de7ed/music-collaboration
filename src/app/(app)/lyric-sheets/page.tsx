@@ -21,7 +21,10 @@ export default async function LyricSheetsPage() {
     orderBy: { updatedAt: "desc" },
   })
 
-  const tags = await prisma.tag.findMany({ orderBy: { name: "asc" } })
+  const tags = await prisma.tag.findMany({
+    where: { lyricSheetTags: { some: {} } },
+    orderBy: { name: "asc" },
+  })
 
   return (
     <div className="max-w-5xl mx-auto">

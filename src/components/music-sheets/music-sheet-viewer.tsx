@@ -52,7 +52,7 @@ export function MusicSheetViewer({
               <select
                 value={visibility}
                 onChange={async (e) => {
-                  const v = e.target.value as "PRIVATE" | "SHARED" | "PUBLIC"
+                  const v = e.target.value as "PRIVATE" | "PUBLIC"
                   setVisibility(v)
                   await fetch(`/api/music-sheets/${sheet.id}`, {
                     method: "PATCH",
@@ -63,7 +63,6 @@ export function MusicSheetViewer({
                 className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white"
               >
                 <option value="PRIVATE">Private</option>
-                <option value="SHARED">Shared</option>
                 <option value="PUBLIC">Public</option>
               </select>
             )}

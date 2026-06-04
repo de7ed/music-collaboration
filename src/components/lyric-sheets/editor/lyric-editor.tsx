@@ -123,12 +123,11 @@ export function LyricSheetEditor({
           <div className="flex items-center gap-2 shrink-0">
             {isOwner && (
               <select
-                value={visibility}
-                onChange={(e) => handleVisibilityChange(e.target.value as "PRIVATE" | "SHARED" | "PUBLIC")}
+                value={visibility === "SHARED" ? "PRIVATE" : visibility}
+                onChange={(e) => handleVisibilityChange(e.target.value as "PRIVATE" | "PUBLIC")}
                 className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white"
               >
                 <option value="PRIVATE">Private</option>
-                <option value="SHARED">Shared</option>
                 <option value="PUBLIC">Public</option>
               </select>
             )}

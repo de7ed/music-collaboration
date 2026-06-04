@@ -1,15 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { Modal } from "@/components/ui/modal"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 
 export function CheckInDialog({
@@ -43,33 +37,28 @@ export function CheckInDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Check in version</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3 py-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="checkin-message">Message</Label>
-            <Input
-              id="checkin-message"
-              autoFocus
-              placeholder="Describe what changed..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCheckIn()}
-            />
-          </div>
+    <Modal open={open} onClose={onClose} title="Check in version">
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="checkin-message">Describe what changed</Label>
+          <Input
+            id="checkin-message"
+            autoFocus
+            placeholder="e.g. Updated chorus, added bridge..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleCheckIn()}
+          />
         </div>
-        <DialogFooter>
+        <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
           <Button onClick={handleCheckIn} disabled={!message.trim() || saving}>
             {saving ? "Saving..." : "Check in"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </Modal>
   )
 }

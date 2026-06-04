@@ -57,10 +57,5 @@ export async function POST(
     update: { permission: body.data.permission },
   })
 
-  // Update visibility to SHARED if it was PRIVATE
-  if (result.sheet.visibility === "PRIVATE") {
-    await prisma.lyricSheet.update({ where: { id }, data: { visibility: "SHARED" } })
-  }
-
   return NextResponse.json(share, { status: 201 })
 }
