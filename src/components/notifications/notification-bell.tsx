@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Bell } from "lucide-react"
 import { useNotifications } from "@/context/notification-context"
 import {
@@ -24,6 +25,12 @@ export function NotificationBell() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 p-0">
         <NotificationFeed />
+        <Link
+          href="/feed"
+          className="block text-center text-xs text-gray-400 hover:text-gray-600 py-2.5 border-t border-gray-100 transition-colors"
+        >
+          View all in Feed →
+        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
   )
