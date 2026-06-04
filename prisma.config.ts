@@ -9,6 +9,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"] ?? "postgresql://david@localhost:5432/music_collab?schema=public",
+    url: process.env["DATABASE_URL"] ?? "postgresql://david@localhost:5432/riff_session?schema=public",
   },
 });
