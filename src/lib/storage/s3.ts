@@ -7,38 +7,35 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import type { StorageProvider } from "./index"
 
-const s3 = new S3Client({
-  region: process.env.AWS_REGION ?? "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-  },
-})
+function getS3() {
+  return new S3Client({
+    region: process.env.AWS_REGION ?? "us-east-1",
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
+    },
+  })
+}
 
 const BUCKET = process.env.AWS_S3_BUCKET ?? ""
 
 export class S3Storage implements StorageProvider {
   async upload(key: string, buffer: Buffer, mimeType: string): Promise<string> {
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: BUCKET,
-        Key: key,
-        Body: buffer,
-        ContentType: mimeType,
-      })
+    await getS3().send(
+      new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: buffer, ContentType: mimeType })
     )
     return key
   }
 
   async getUrl(key: string): Promise<string> {
     return getSignedUrl(
-      s3,
+      getS3(),
       new GetObjectCommand({ Bucket: BUCKET, Key: key }),
       { expiresIn: 3600 }
     )
   }
 
   async delete(key: string): Promise<void> {
-    await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }))
+    await getS3().send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }))
   }
 }

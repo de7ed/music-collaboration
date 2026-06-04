@@ -1,8 +1,15 @@
 import { Resend } from "resend"
 import { NotificationType } from "@prisma/client"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = process.env.RESEND_FROM_EMAIL ?? "noreply@example.com"
+// Lazy-initialize so the build doesn't fail if RESEND_API_KEY isn't set
+// in the build environment (it only needs to be set at runtime)
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
+
+function getFrom() {
+  return process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev"
+}
 
 export async function sendInviteEmail({
   to,
@@ -14,8 +21,8 @@ export async function sendInviteEmail({
   token: string
 }) {
   const url = `${process.env.NEXT_PUBLIC_APP_URL}/sign-up?invite=${token}`
-  await resend.emails.send({
-    from: FROM,
+  await getResend().emails.send({
+    from: getFrom(),
     to,
     subject: `${inviterName} invited you to Music Collab`,
     html: `<p>${inviterName} has invited you to join Music Collab.</p><p><a href="${url}">Accept invitation</a></p>`,
@@ -23,8 +30,8 @@ export async function sendInviteEmail({
 }
 
 export async function sendApprovalEmail({ to, name }: { to: string; name: string }) {
-  await resend.emails.send({
-    from: FROM,
+  await getResend().emails.send({
+    from: getFrom(),
     to,
     subject: "Your Music Collab account has been approved",
     html: `<p>Hi ${name},</p><p>Your account has been approved. <a href="${process.env.NEXT_PUBLIC_APP_URL}/sign-in">Sign in now</a></p>`,
@@ -32,8 +39,8 @@ export async function sendApprovalEmail({ to, name }: { to: string; name: string
 }
 
 export async function sendRejectionEmail({ to, name }: { to: string; name: string }) {
-  await resend.emails.send({
-    from: FROM,
+  await getResend().emails.send({
+    from: getFrom(),
     to,
     subject: "Music Collab account update",
     html: `<p>Hi ${name},</p><p>Unfortunately your account request was not approved. Contact the admin if you think this is a mistake.</p>`,
@@ -64,8 +71,8 @@ export async function sendNotificationEmail({
       ? `${appUrl}/music-sheets/${payload.musicSheetId}`
       : appUrl
 
-  await resend.emails.send({
-    from: FROM,
+  await getResend().emails.send({
+    from: getFrom(),
     to,
     subject,
     html: `<p>${subject}. <a href="${sheetUrl}">View it here</a></p>`,
