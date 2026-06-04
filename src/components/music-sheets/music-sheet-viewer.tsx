@@ -3,11 +3,13 @@
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Settings2, ArrowLeft } from "lucide-react"
+import { Settings2, ArrowLeft, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { cn, formatBytes } from "@/lib/utils"
 import { ShareDialog } from "@/components/lyric-sheets/sharing/share-dialog"
 import { TagInput } from "@/components/tags/tag-input"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 type User = { id: string; name: string | null; email: string }
 type Share = { id: string; userId: string; permission: string }
@@ -40,7 +42,20 @@ export function MusicSheetViewer({
 }) {
   const [tags, setTags] = useState(sheet.tags)
   const [shareOpen, setShareOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [visibility, setVisibility] = useState(sheet.visibility)
+  const router = useRouter()
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      await fetch(`/api/music-sheets/${sheet.id}`, { method: "DELETE" })
+      router.push("/music-sheets")
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -74,6 +89,16 @@ export function MusicSheetViewer({
               <Button size="sm" variant="outline" onClick={() => setShareOpen(true)}>
                 <Settings2 className="w-3.5 h-3.5 mr-1" />
                 Share
+              </Button>
+            )}
+            {isOwner && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setDeleteOpen(true)}
+                className="text-gray-400 hover:text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
               </Button>
             )}
           </div>
@@ -158,6 +183,15 @@ export function MusicSheetViewer({
         sheetType="music"
         allUsers={allUsers}
         currentShares={sheet.shares}
+      />
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete music sheet"
+        description={`"${sheet.title}" and all its comments will be permanently deleted. This cannot be undone.`}
+        loading={deleting}
       />
     </div>
   )
