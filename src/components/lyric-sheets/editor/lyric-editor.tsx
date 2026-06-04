@@ -11,11 +11,13 @@ import { CheckInDialog } from "./checkin-dialog"
 import { ShareDialog } from "../sharing/share-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Settings2, History, GitCommitHorizontal, ArrowLeft } from "lucide-react"
+import { Settings2, History, GitCommitHorizontal, ArrowLeft, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { TagInput } from "@/components/tags/tag-input"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 type Share = { id: string; userId: string; permission: string }
 type User = { id: string; name: string | null; email: string }
@@ -51,7 +53,10 @@ export function LyricSheetEditor({
   const [tags, setTags] = useState(sheet.tags)
   const [checkInOpen, setCheckInOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [editorContent, setEditorContent] = useState<object | null>(null)
+  const router = useRouter()
 
   const isEditor = permission === "EDITOR"
 
@@ -95,6 +100,16 @@ export function LyricSheetEditor({
       })
     }
   }, [title, sheet.id, sheet.title])
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      await fetch(`/api/lyric-sheets/${sheet.id}`, { method: "DELETE" })
+      router.push("/lyric-sheets")
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const saveStatusLabel = {
     saved: "Saved",
@@ -158,6 +173,17 @@ export function LyricSheetEditor({
               <History className="w-3.5 h-3.5 mr-1" />
               History
             </Link>
+
+            {isOwner && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setDeleteOpen(true)}
+                className="text-gray-400 hover:text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            )}
           </div>
         </div>
 
@@ -225,6 +251,15 @@ export function LyricSheetEditor({
         sheetType="lyric"
         allUsers={allUsers}
         currentShares={sheet.shares}
+      />
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete lyric sheet"
+        description={`"${sheet.title}" will be permanently deleted, including all versions and comments. This cannot be undone.`}
+        loading={deleting}
       />
     </div>
   )
