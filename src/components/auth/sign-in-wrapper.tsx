@@ -37,7 +37,7 @@ export function SignInWrapper() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center space-y-2">
-          <p className="text-gray-500">You're already signed in. Redirecting...</p>
+          <p className="text-gray-500">Already signed in. Redirecting...</p>
         </div>
       </div>
     )
