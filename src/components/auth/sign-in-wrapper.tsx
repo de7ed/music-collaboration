@@ -44,5 +44,5 @@ export function SignInWrapper() {
   }
 
   // Only render SignIn when we're sure user is NOT signed in
-  return <SignIn />
+  return <SignIn forceRedirectUrl="/lyric-sheets" fallbackRedirectUrl="/lyric-sheets" />
 }
