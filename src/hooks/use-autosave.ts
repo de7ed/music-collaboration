@@ -4,11 +4,14 @@ type SaveStatus = "saved" | "saving" | "unsaved" | "idle"
 
 export function useAutosave({
   sheetId,
+  sheetType = "lyric-sheets",
   content,
   enabled,
   delay = 2000,
 }: {
   sheetId: string
+  /** The API route segment for the sheet type, e.g. "lyric-sheets" or "tab-sheets". */
+  sheetType?: string
   content: object | null
   enabled: boolean
   delay?: number
@@ -31,7 +34,7 @@ export function useAutosave({
     timerRef.current = setTimeout(async () => {
       setStatus("saving")
       try {
-        await fetch(`/api/lyric-sheets/${sheetId}/autosave`, {
+        await fetch(`/api/${sheetType}/${sheetId}/autosave`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content }),
@@ -45,7 +48,7 @@ export function useAutosave({
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [content, sheetId, enabled, delay])
+  }, [content, sheetId, sheetType, enabled, delay])
 
   return status
 }
