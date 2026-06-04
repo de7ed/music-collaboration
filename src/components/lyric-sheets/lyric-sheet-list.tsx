@@ -90,19 +90,30 @@ function TagAddPopover({
         <Plus className="w-2.5 h-2.5" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-20 w-48 bg-white border border-gray-200 rounded-lg shadow-md">
-          <div className="p-1.5 border-b border-gray-100">
+        <div className="absolute right-0 top-full mt-1 z-20 w-52 bg-white border border-gray-200 rounded-lg shadow-md">
+          <div className="p-1.5 border-b border-gray-100 flex gap-1">
             <input
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && canCreate) addTag(trimmed)
+                if (e.key === "Enter" && (canCreate || filtered.length === 1)) {
+                  addTag(canCreate ? trimmed : filtered[0].name)
+                }
                 if (e.key === "Escape") setOpen(false)
               }}
-              placeholder="Find or create tag..."
-              className="w-full text-xs px-2 py-1 border border-gray-200 rounded outline-none focus:border-gray-400"
+              placeholder={canCreate ? `↵ to add "${trimmed}"` : "Search or type new tag…"}
+              className="flex-1 text-xs px-2 py-1 border border-gray-200 rounded outline-none focus:border-gray-400"
             />
+            {canCreate && (
+              <button
+                onClick={() => addTag(trimmed)}
+                disabled={loading}
+                className="px-2 py-1 text-xs bg-black text-white rounded hover:bg-gray-700 disabled:opacity-50 shrink-0"
+              >
+                Add
+              </button>
+            )}
           </div>
           <div className="max-h-40 overflow-y-auto py-1">
             {filtered.map((t) => (
@@ -115,17 +126,10 @@ function TagAddPopover({
                 {t.name}
               </button>
             ))}
-            {canCreate && (
-              <button
-                onClick={() => addTag(trimmed)}
-                disabled={loading}
-                className="w-full text-left px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 disabled:opacity-50"
-              >
-                Create &ldquo;{trimmed}&rdquo;
-              </button>
-            )}
             {filtered.length === 0 && !canCreate && (
-              <p className="px-3 py-2 text-xs text-gray-400">No tags found</p>
+              <p className="px-3 py-2 text-xs text-gray-400">
+                {query.trim() ? "Tag already added" : "No tags yet — type to create one"}
+              </p>
             )}
           </div>
         </div>
@@ -359,7 +363,7 @@ function GroupedList({
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</h3>
             <span className="text-xs text-gray-300">{sheets.length}</span>
           </div>
-          <div className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+          <div className="divide-y divide-gray-100 border border-gray-200 rounded-lg [&>*:first-child]:rounded-t-lg [&>*:last-child]:rounded-b-lg">
             {sheets.map((sheet) => (
               <SheetRow key={sheet.id} sheet={sheet} currentUserId={currentUserId}
                 allUsers={allUsers} availableTags={availableTags}
