@@ -52,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <div className="flex h-screen overflow-hidden bg-white">
         <Sidebar isAdmin={user.role === "ADMIN"} />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-12 border-b border-gray-200 flex items-center justify-end px-4 gap-2 shrink-0">
+          <header className="h-12 border-b border-gray-200 flex items-center justify-end pl-12 pr-4 md:pl-4 gap-2 shrink-0">
             <NotificationBell />
             <UserButton />
           </header>
