@@ -40,7 +40,7 @@
   text-wrap: balance;
 }
 
-/* TipTap prose styles */
+/* TipTap editor */
 .ProseMirror {
   outline: none;
 }
@@ -52,3 +52,8 @@
   height: 0;
   pointer-events: none;
 }
+
+/* Override prose colors to stay neutral (no blue links etc.) */
+.prose a { color: inherit; }
+.prose strong { color: inherit; }
+.prose h1, .prose h2, .prose h3, .prose h4 { color: inherit; }

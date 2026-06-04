@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server"
+import { auth, clerkClient } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { Sidebar } from "@/components/layout/sidebar"
@@ -11,8 +11,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { userId } = await auth()
   if (!userId) redirect("/sign-in")
 
-  const user = await prisma.user.findUnique({ where: { clerkId: userId } })
-  if (!user || user.status !== "ACTIVE") redirect("/pending")
+  let user = await prisma.user.findUnique({ where: { clerkId: userId } })
+
+  // Fallback: if the webhook hasn't fired yet (common in local dev), create the
+  // user row now as PENDING so they land on the approval queue rather than an error.
+  if (!user) {
+    const client = await clerkClient()
+    const clerkUser = await client.users.getUser(userId)
+    const email = clerkUser.emailAddresses[0]?.emailAddress ?? ""
+    const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || null
+    user = await prisma.user.create({
+      data: {
+        clerkId: userId,
+        email,
+        name,
+        avatarUrl: clerkUser.imageUrl || null,
+        status: "PENDING",
+        role: "STANDARD",
+      },
+    })
+  }
+
+  if (user.status !== "ACTIVE") redirect("/pending")
 
   const recentNotifications = await prisma.notification.findMany({
     where: { userId: user.id },

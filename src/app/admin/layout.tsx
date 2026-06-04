@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!userId) redirect("/sign-in")
 
   const user = await prisma.user.findUnique({ where: { clerkId: userId } })
-  if (!user || user.role !== UserRole.ADMIN) redirect("/lyric-sheets")
+  if (!user || user.status !== "ACTIVE" || user.role !== UserRole.ADMIN) redirect("/lyric-sheets")
 
   const recentNotifications = await prisma.notification.findMany({
     where: { userId: user.id },
