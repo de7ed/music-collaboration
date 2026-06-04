@@ -50,9 +50,5 @@ export async function POST(
     update: { permission },
   })
 
-  if (result.sheet.visibility === "PRIVATE") {
-    await prisma.musicSheet.update({ where: { id }, data: { visibility: "SHARED" } })
-  }
-
   return NextResponse.json(share, { status: 201 })
 }

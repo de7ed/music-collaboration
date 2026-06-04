@@ -22,7 +22,10 @@ export default async function MusicSheetsPage() {
     orderBy: { updatedAt: "desc" },
   })
 
-  const tags = await prisma.tag.findMany({ orderBy: { name: "asc" } })
+  const tags = await prisma.tag.findMany({
+    where: { musicSheetTags: { some: {} } },
+    orderBy: { name: "asc" },
+  })
 
   return (
     <div className="max-w-5xl mx-auto">

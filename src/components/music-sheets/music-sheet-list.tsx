@@ -54,8 +54,8 @@ export function MusicSheetList({
 
   const visibilityBadge = {
     PRIVATE: { label: "Private", className: "bg-gray-100 text-gray-600 border-gray-200" },
-    SHARED: { label: "Shared", className: "bg-gray-200 text-gray-700 border-gray-300" },
-    PUBLIC: { label: "Public", className: "bg-black text-white border-black" },
+    SHARED:  { label: "Private", className: "bg-gray-100 text-gray-600 border-gray-200" },
+    PUBLIC:  { label: "Public",  className: "bg-black text-white border-black" },
   }
 
   return (
@@ -97,21 +97,19 @@ export function MusicSheetList({
         >
           <option value="">All visibility</option>
           <option value="PRIVATE">Private</option>
-          <option value="SHARED">Shared</option>
           <option value="PUBLIC">Public</option>
         </select>
-        {availableTags.length > 0 && (
-          <select
-            value={tagFilter}
-            onChange={(e) => setTagFilter(e.target.value)}
-            className="h-8 text-xs border border-gray-200 rounded-md px-2 bg-white"
-          >
-            <option value="">All tags</option>
-            {availableTags.map((t) => (
-              <option key={t.id} value={t.name}>{t.name}</option>
-            ))}
-          </select>
-        )}
+        <select
+          value={tagFilter}
+          onChange={(e) => setTagFilter(e.target.value)}
+          className="h-8 text-xs border border-gray-200 rounded-md px-2 bg-white"
+          disabled={availableTags.length === 0}
+        >
+          <option value="">{availableTags.length === 0 ? "No tags yet" : "All tags"}</option>
+          {availableTags.map((t) => (
+            <option key={t.id} value={t.name}>{t.name}</option>
+          ))}
+        </select>
       </div>
 
       {filtered.length === 0 ? (
