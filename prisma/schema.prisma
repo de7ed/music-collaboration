@@ -74,8 +74,10 @@ model User {
 
   lyricSheets      LyricSheet[]      @relation("Owner")
   musicSheets      MusicSheet[]      @relation("Owner")
+  tabSheets        TabSheet[]        @relation("Owner")
   lyricSheetShares LyricSheetShare[]
   musicSheetShares MusicSheetShare[]
+  tabSheetShares   TabSheetShare[]
   comments         Comment[]
   commentMentions  CommentMention[]
   notifications    Notification[]
@@ -111,6 +113,7 @@ model Tag {
 
   lyricSheetTags LyricSheetTag[]
   musicSheetTags MusicSheetTag[]
+  tabSheetTags   TabSheetTag[]
 }
 
 // ─── Lyric Sheets ─────────────────────────────────────────────
@@ -175,15 +178,18 @@ model LyricSheetTag {
 // ─── Share Links ──────────────────────────────────────────────
 
 model ShareLink {
-  id           String     @id @default(cuid())
-  token        String     @unique @default(cuid())
-  lyricSheetId String
-  lyricSheet   LyricSheet @relation(fields: [lyricSheetId], references: [id], onDelete: Cascade)
+  id           String      @id @default(cuid())
+  token        String      @unique @default(cuid())
+  lyricSheetId String?
+  lyricSheet   LyricSheet? @relation(fields: [lyricSheetId], references: [id], onDelete: Cascade)
+  tabSheetId   String?
+  tabSheet     TabSheet?   @relation(fields: [tabSheetId], references: [id], onDelete: Cascade)
   createdById  String
-  createdAt    DateTime   @default(now())
+  createdAt    DateTime    @default(now())
 
   @@index([token])
   @@index([lyricSheetId])
+  @@index([tabSheetId])
 }
 
 // ─── Music Sheets ─────────────────────────────────────────────
@@ -244,6 +250,8 @@ model Comment {
   lyricSheet   LyricSheet? @relation("LyricSheetComments", fields: [lyricSheetId], references: [id])
   musicSheetId String?
   musicSheet   MusicSheet? @relation("MusicSheetComments", fields: [musicSheetId], references: [id])
+  tabSheetId   String?
+  tabSheet     TabSheet?   @relation("TabSheetComments", fields: [tabSheetId], references: [id])
 
   parentId String?
   parent   Comment?  @relation("Replies", fields: [parentId], references: [id])
@@ -258,6 +266,7 @@ model Comment {
 
   @@index([lyricSheetId])
   @@index([musicSheetId])
+  @@index([tabSheetId])
   @@index([parentId])
 }
 
@@ -313,4 +322,65 @@ model AdminAction {
 
   @@index([adminId])
   @@index([targetId])
+}
+
+// ─── Tab Sheets ───────────────────────────────────────────────
+
+model TabSheet {
+  id         String     @id @default(cuid())
+  title      String
+  ownerId    String
+  owner      User       @relation("Owner", fields: [ownerId], references: [id])
+  visibility Visibility @default(PRIVATE)
+
+  // tagged union: { format: "alphatex", source: string } | { format: "guitarpro", fileKey: string }
+  content   Json @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  versions   TabSheetVersion[]
+  shares     TabSheetShare[]
+  tags       TabSheetTag[]
+  comments   Comment[]         @relation("TabSheetComments")
+  shareLinks ShareLink[]
+
+  @@index([ownerId])
+  @@index([visibility])
+}
+
+model TabSheetVersion {
+  id         String   @id @default(cuid())
+  tabSheetId String
+  tabSheet   TabSheet @relation(fields: [tabSheetId], references: [id], onDelete: Cascade)
+  content    Json
+  isCheckIn  Boolean  @default(false)
+  message    String?
+  createdById String
+  createdAt  DateTime @default(now())
+
+  @@index([tabSheetId, createdAt])
+  @@index([tabSheetId, isCheckIn])
+}
+
+model TabSheetShare {
+  id         String          @id @default(cuid())
+  tabSheetId String
+  tabSheet   TabSheet        @relation(fields: [tabSheetId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User            @relation(fields: [userId], references: [id])
+  permission SharePermission @default(VIEWER)
+  createdAt  DateTime        @default(now())
+
+  @@unique([tabSheetId, userId])
+  @@index([userId])
+}
+
+model TabSheetTag {
+  tabSheetId String
+  tabSheet   TabSheet @relation(fields: [tabSheetId], references: [id], onDelete: Cascade)
+  tagId      String
+  tag        Tag      @relation(fields: [tagId], references: [id])
+
+  @@id([tabSheetId, tagId])
 }
