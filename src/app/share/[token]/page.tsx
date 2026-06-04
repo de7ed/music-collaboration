@@ -50,6 +50,9 @@ export default async function SharePage({
 
   const { lyricSheet } = link
 
+  // Tab sheet share rendering is added in Step 8; for now only lyric sheets are supported.
+  if (!lyricSheet) notFound()
+
   return (
     <SharePageClient
       sheet={{
