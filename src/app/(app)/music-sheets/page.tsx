@@ -18,7 +18,7 @@ export default async function MusicSheetsPage() {
       tags: { include: { tag: true } },
       shares: { where: { userId: user.id }, select: { id: true } },
       lyricSheet: { select: { id: true, title: true } },
-      _count: { select: { comments: true } },
+      _count: { select: { comments: { where: { deletedAt: null } } } },
     },
     orderBy: { updatedAt: "desc" },
   })
