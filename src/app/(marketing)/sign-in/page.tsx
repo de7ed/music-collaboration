@@ -1,5 +1,5 @@
-import { SignIn } from "@clerk/nextjs"
+import { SignInWrapper } from "@/components/auth/sign-in-wrapper"
 
 export default function SignInPage() {
-  return <SignIn forceRedirectUrl="/lyric-sheets" />
+  return <SignInWrapper />
 }
