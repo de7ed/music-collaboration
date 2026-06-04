@@ -13,30 +13,29 @@ export async function GET() {
 
   const encoder = new TextEncoder()
 
+  // Shared across start() and cancel() via closure
+  let controller: ReadableStreamDefaultController<Uint8Array>
+  let heartbeat: ReturnType<typeof setInterval>
+
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
+    start(ctrl) {
+      controller = ctrl
       addConnection(user.id, controller)
 
-      // Send a heartbeat every 25 seconds to keep connection alive through proxies
-      const heartbeat = setInterval(() => {
+      heartbeat = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(": heartbeat\n\n"))
         } catch {
+          // Client already gone — clean up proactively
           clearInterval(heartbeat)
+          removeConnection(user.id, controller)
         }
       }, 25000)
-
-      // Clean up on stream close
-      const cleanup = () => {
-        clearInterval(heartbeat)
-        removeConnection(user.id, controller)
-      }
-
-      // Store cleanup on controller for abort handling
-      ;(controller as unknown as { _cleanup: () => void })._cleanup = cleanup
     },
-    cancel(controller) {
-      ;(controller as unknown as { _cleanup?: () => void })._cleanup?.()
+    cancel() {
+      // Called when the client disconnects
+      clearInterval(heartbeat)
+      removeConnection(user.id, controller)
     },
   })
 

@@ -11,7 +11,7 @@ import { CheckInDialog } from "./checkin-dialog"
 import { ShareDialog } from "../sharing/share-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Settings2, History, GitCommitHorizontal } from "lucide-react"
+import { Settings2, History, GitCommitHorizontal, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -107,6 +107,11 @@ export function LyricSheetEditor({
     <div className="flex flex-col h-full">
       {/* Sheet header */}
       <div className="px-6 pt-6 pb-3 border-b border-gray-100 space-y-2">
+        {/* Back link */}
+        <Link href="/lyric-sheets" className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors mb-1">
+          <ArrowLeft className="w-3 h-3" />
+          Lyric Sheets
+        </Link>
         <div className="flex items-start justify-between gap-4">
           {isOwner ? (
             <input

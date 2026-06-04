@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Settings2 } from "lucide-react"
+import { Settings2, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { cn, formatBytes } from "@/lib/utils"
 import { ShareDialog } from "@/components/lyric-sheets/sharing/share-dialog"
@@ -45,6 +45,10 @@ export function MusicSheetViewer({
   return (
     <div className="flex flex-col h-full">
       <div className="px-6 pt-6 pb-3 border-b border-gray-100 space-y-2">
+        <Link href="/music-sheets" className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors mb-1">
+          <ArrowLeft className="w-3 h-3" />
+          Music Sheets
+        </Link>
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-2xl font-bold flex-1 min-w-0 truncate">{sheet.title}</h1>
           <div className="flex items-center gap-2 shrink-0">
