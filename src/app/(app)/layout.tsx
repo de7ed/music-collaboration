@@ -1,7 +1,6 @@
 import { auth, clerkClient } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import type { Notification } from "@prisma/client"
 import { Sidebar } from "@/components/layout/sidebar"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { SSEProvider } from "@/components/notifications/sse-provider"
@@ -42,7 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   })
 
   return (
-    <NotificationProvider initialNotifications={recentNotifications.map((n: Notification) => ({
+    <NotificationProvider initialNotifications={recentNotifications.map((n: { id: string; type: string; readAt: Date | null; payload: unknown; createdAt: Date; userId: string }) => ({
       ...n,
       type: n.type as string,
       readAt: n.readAt?.toISOString() ?? null,
