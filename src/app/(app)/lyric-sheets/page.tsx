@@ -23,13 +23,7 @@ export default async function LyricSheetsPage() {
       orderBy: { updatedAt: "desc" },
     }),
     prisma.tag.findMany({
-      where: {
-        OR: [
-          { lyricSheetTags: { some: {} } },
-          { musicSheetTags: { some: {} } },
-          { tabSheetTags: { some: {} } },
-        ],
-      },
+      where: { OR: [{ lyricSheetTags: { some: {} } }, { musicSheetTags: { some: {} } }] },
       orderBy: { name: "asc" },
     }),
     prisma.user.findMany({
