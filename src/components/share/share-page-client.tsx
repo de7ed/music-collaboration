@@ -186,7 +186,7 @@ export function SharePageClient({
       {/* Main content */}
       <div className="max-w-5xl mx-auto px-4 py-8 md:flex md:gap-10">
         {/* Lyrics — full width on mobile, flex-1 on desktop */}
-        <div className="flex-1 min-w-0 pb-24 md:pb-0">
+        <div className="w-full md:flex-1 pb-24 md:pb-0">
           <div className="space-y-3 mb-8">
             <h1 className="text-3xl font-bold">{sheet.title}</h1>
             <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
@@ -203,8 +203,8 @@ export function SharePageClient({
             )}
           </div>
 
-          <div className="prose prose-sm max-w-none">
-            <EditorContent editor={editor} className="[&_.ProseMirror]:outline-none" />
+          <div className="prose prose-sm max-w-none w-full">
+            <EditorContent editor={editor} className="w-full [&_.ProseMirror]:outline-none [&_.ProseMirror]:w-full" />
           </div>
         </div>
 
