@@ -7,9 +7,8 @@ import Underline from "@tiptap/extension-underline"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
-import { MessageSquare, LogIn, Music2 } from "lucide-react"
-import { formatDistanceToNow } from "@/lib/utils"
-import { cn } from "@/lib/utils"
+import { MessageSquare, LogIn, Music2, X, ChevronUp } from "lucide-react"
+import { formatDistanceToNow, cn } from "@/lib/utils"
 
 type Tag = { id: string; name: string }
 type User = { id: string; name: string | null; email: string }
@@ -82,6 +81,62 @@ function SignUpPrompt() {
   )
 }
 
+function CommentCTA({ viewer, sheetId }: { viewer: { id: string } | null; sheetId: string }) {
+  const [showPrompt, setShowPrompt] = useState(false)
+
+  if (viewer) {
+    return (
+      <Link
+        href={`/lyric-sheets/${sheetId}`}
+        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
+      >
+        <LogIn className="w-3.5 h-3.5 mr-1.5" />
+        Open in Music Collab to comment
+      </Link>
+    )
+  }
+
+  return showPrompt ? (
+    <SignUpPrompt />
+  ) : (
+    <button
+      onClick={() => setShowPrompt(true)}
+      className="w-full text-left text-sm text-gray-400 border border-dashed border-gray-200 rounded-lg px-3 py-2.5 hover:border-gray-300 hover:text-gray-600 transition-colors"
+    >
+      Add a comment...
+    </button>
+  )
+}
+
+function CommentsPanel({
+  comments,
+  viewer,
+  sheetId,
+}: {
+  comments: Comment[]
+  viewer: { id: string; name: string | null; email: string } | null
+  sheetId: string
+}) {
+  return (
+    <div className="space-y-4">
+      {comments.length === 0 ? (
+        <p className="text-xs text-gray-400">No comments yet.</p>
+      ) : (
+        <div className="space-y-4 divide-y divide-gray-100">
+          {comments.map((c) => (
+            <div key={c.id} className="pt-4 first:pt-0">
+              <CommentRow comment={c} />
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="pt-2">
+        <CommentCTA viewer={viewer} sheetId={sheetId} />
+      </div>
+    </div>
+  )
+}
+
 export function SharePageClient({
   sheet,
   comments,
@@ -91,7 +146,7 @@ export function SharePageClient({
   comments: Comment[]
   viewer: { id: string; name: string | null; email: string } | null
 }) {
-  const [showSignUpPrompt, setShowSignUpPrompt] = useState(false)
+  const [mobileCommentsOpen, setMobileCommentsOpen] = useState(false)
 
   const editor = useEditor({
     extensions: [StarterKit, Underline],
@@ -102,17 +157,17 @@ export function SharePageClient({
   return (
     <div className="min-h-screen bg-white">
       {/* Platform banner */}
-      <div className="border-b border-gray-100 bg-gray-50 px-4 py-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Music2 className="w-4 h-4 text-gray-400" />
-          <span className="text-xs text-gray-500">
+      <div className="border-b border-gray-100 bg-gray-50 px-4 py-2.5 flex items-center justify-between sticky top-0 z-10">
+        <div className="flex items-center gap-2 min-w-0">
+          <Music2 className="w-4 h-4 text-gray-400 shrink-0" />
+          <span className="text-xs text-gray-500 truncate">
             Shared on <span className="font-medium text-black">Music Collab</span>
-            {" — "}a private workspace for bands and collaborators
+            <span className="hidden sm:inline"> — a private workspace for bands and collaborators</span>
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0 ml-2">
           {viewer ? (
-            <Link href="/lyric-sheets" className="text-xs text-gray-500 hover:text-black transition-colors">
+            <Link href="/lyric-sheets" className="text-xs text-gray-500 hover:text-black transition-colors whitespace-nowrap">
               Go to app →
             </Link>
           ) : (
@@ -128,13 +183,13 @@ export function SharePageClient({
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-3xl mx-auto px-4 py-8 flex gap-8">
-        {/* Lyrics */}
-        <div className="flex-1 min-w-0">
-          <div className="space-y-3 mb-6">
+      {/* Main content */}
+      <div className="max-w-5xl mx-auto px-4 py-8 md:flex md:gap-10">
+        {/* Lyrics — full width on mobile, flex-1 on desktop */}
+        <div className="flex-1 min-w-0 pb-24 md:pb-0">
+          <div className="space-y-3 mb-8">
             <h1 className="text-3xl font-bold">{sheet.title}</h1>
-            <div className="flex items-center gap-3 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
               <span>by {sheet.owner.name ?? sheet.owner.email}</span>
               <span>·</span>
               <span>updated {formatDistanceToNow(new Date(sheet.updatedAt))}</span>
@@ -153,9 +208,9 @@ export function SharePageClient({
           </div>
         </div>
 
-        {/* Comments sidebar */}
-        <div className="w-72 shrink-0">
-          <div className="sticky top-6 space-y-4">
+        {/* Desktop comments sidebar — hidden on mobile */}
+        <div className="hidden md:block w-72 shrink-0">
+          <div className="sticky top-16 space-y-4">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-gray-400" />
               <span className="text-sm font-medium">Comments</span>
@@ -163,43 +218,57 @@ export function SharePageClient({
                 <span className="text-xs text-gray-400">({comments.length})</span>
               )}
             </div>
-
-            {comments.length === 0 ? (
-              <p className="text-xs text-gray-400">No comments yet.</p>
-            ) : (
-              <div className="space-y-4 divide-y divide-gray-100">
-                {comments.map((c) => (
-                  <div key={c.id} className="pt-4 first:pt-0">
-                    <CommentRow comment={c} />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Comment CTA */}
-            <div className="pt-2">
-              {viewer ? (
-                // Logged-in platform member — link them to the actual sheet
-                <Link
-                  href={`/lyric-sheets/${sheet.id}`}
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
-                >
-                  <LogIn className="w-3.5 h-3.5 mr-1.5" />
-                  Open in Music Collab to comment
-                </Link>
-              ) : showSignUpPrompt ? (
-                <SignUpPrompt />
-              ) : (
-                <button
-                  onClick={() => setShowSignUpPrompt(true)}
-                  className="w-full text-left text-sm text-gray-400 border border-dashed border-gray-200 rounded-lg px-3 py-2.5 hover:border-gray-300 hover:text-gray-600 transition-colors"
-                >
-                  Add a comment...
-                </button>
-              )}
-            </div>
+            <CommentsPanel comments={comments} viewer={viewer} sheetId={sheet.id} />
           </div>
         </div>
+      </div>
+
+      {/* Mobile sticky bottom bar */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-20">
+        {/* Comments sheet — slides up */}
+        {mobileCommentsOpen && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/30 z-10"
+              onClick={() => setMobileCommentsOpen(false)}
+            />
+            {/* Panel */}
+            <div className="relative z-20 bg-white rounded-t-2xl shadow-2xl max-h-[70vh] flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium">Comments</span>
+                  {comments.length > 0 && (
+                    <span className="text-xs text-gray-400">({comments.length})</span>
+                  )}
+                </div>
+                <button onClick={() => setMobileCommentsOpen(false)} className="p-1 rounded-full hover:bg-gray-100">
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+              <div className="overflow-y-auto flex-1 px-4 py-4">
+                <CommentsPanel comments={comments} viewer={viewer} sheetId={sheet.id} />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Sticky trigger bar */}
+        {!mobileCommentsOpen && (
+          <button
+            onClick={() => setMobileCommentsOpen(true)}
+            className="w-full bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between shadow-lg"
+          >
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">
+                {comments.length > 0 ? `${comments.length} comment${comments.length === 1 ? "" : "s"}` : "No comments yet"}
+              </span>
+            </div>
+            <ChevronUp className="w-4 h-4 text-gray-400" />
+          </button>
+        )}
       </div>
     </div>
   )
