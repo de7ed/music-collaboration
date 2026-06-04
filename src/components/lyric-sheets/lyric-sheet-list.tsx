@@ -90,7 +90,7 @@ function TagAddPopover({
         <Plus className="w-2.5 h-2.5" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-20 w-52 bg-white border border-gray-200 rounded-lg shadow-md">
+        <div className="absolute right-full top-1/2 -translate-y-1/2 mr-2 z-20 w-52 bg-white border border-gray-200 rounded-lg shadow-md">
           <div className="p-1.5 border-b border-gray-100 flex gap-1">
             <input
               autoFocus
