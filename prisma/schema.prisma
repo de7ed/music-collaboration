@@ -130,6 +130,7 @@ model LyricSheet {
   tags        LyricSheetTag[]
   comments    Comment[]           @relation("LyricSheetComments")
   musicSheets MusicSheet[]
+  shareLinks  ShareLink[]
 
   @@index([ownerId])
   @@index([visibility])
@@ -169,6 +170,20 @@ model LyricSheetTag {
   tag          Tag        @relation(fields: [tagId], references: [id])
 
   @@id([lyricSheetId, tagId])
+}
+
+// ─── Share Links ──────────────────────────────────────────────
+
+model ShareLink {
+  id           String     @id @default(cuid())
+  token        String     @unique @default(cuid())
+  lyricSheetId String
+  lyricSheet   LyricSheet @relation(fields: [lyricSheetId], references: [id], onDelete: Cascade)
+  createdById  String
+  createdAt    DateTime   @default(now())
+
+  @@index([token])
+  @@index([lyricSheetId])
 }
 
 // ─── Music Sheets ─────────────────────────────────────────────

@@ -9,6 +9,7 @@ import { useAutosave } from "@/hooks/use-autosave"
 import { EditorToolbar } from "./editor-toolbar"
 import { CheckInDialog } from "./checkin-dialog"
 import { ShareDialog } from "../sharing/share-dialog"
+import { ShareLinkButton } from "../sharing/share-link-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Settings2, History, GitCommitHorizontal, ArrowLeft, Trash2 } from "lucide-react"
@@ -155,6 +156,8 @@ export function LyricSheetEditor({
                 Share
               </Button>
             )}
+
+            {isOwner && <ShareLinkButton sheetId={sheet.id} />}
 
             {isEditor && (
               <Button size="sm" variant="outline" onClick={() => setCheckInOpen(true)}>
