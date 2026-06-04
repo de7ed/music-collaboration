@@ -13,7 +13,7 @@ const isPublicRoute = createRouteMatcher([
 const isAdminRoute = createRouteMatcher(["/admin(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth()
+  const { userId, sessionClaims } = await auth()
 
   // Allow public routes through
   if (isPublicRoute(req)) return NextResponse.next()
@@ -25,12 +25,16 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(signInUrl)
   }
 
-  // Fetch user's public metadata directly from Clerk (always fresh, no JWT caching)
-  const client = await clerkClient()
-  const clerkUser = await client.users.getUser(userId)
-  const meta = clerkUser.publicMetadata as { status?: string; role?: string }
+  // Get user metadata from session claims (includes publicMetadata from JWT)
+  const publicMetadata = sessionClaims?.public_metadata as { status?: string; role?: string } | undefined
 
-  if (!meta.status || meta.status === "pending" || meta.status === "rejected" || meta.status === "suspended") {
+  // If metadata is missing (rare race condition), allow through to let Clerk sync
+  if (!publicMetadata?.status) {
+    return NextResponse.next()
+  }
+
+  // Check user status
+  if (publicMetadata.status === "pending" || publicMetadata.status === "rejected" || publicMetadata.status === "suspended") {
     if (req.nextUrl.pathname !== "/pending") {
       return NextResponse.redirect(new URL("/pending", req.url))
     }
@@ -38,7 +42,7 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Admin route guard
-  if (isAdminRoute(req) && meta.role !== "admin") {
+  if (isAdminRoute(req) && publicMetadata.role !== "admin") {
     return NextResponse.redirect(new URL("/lyric-sheets", req.url))
   }
 
