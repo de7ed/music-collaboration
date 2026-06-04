@@ -3,9 +3,8 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Plus, Music, MessageSquare, MoreHorizontal, X, Globe, Lock, Share2, Trash2, Tag as TagIcon } from "lucide-react"
+import { Plus, Music, MessageSquare, MoreHorizontal, X, Globe, Lock, Share2, Trash2, Tag as TagIcon, Users } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { cn, formatDistanceToNow, formatBytes } from "@/lib/utils"
 import { ShareDialog } from "@/components/lyric-sheets/sharing/share-dialog"
@@ -35,12 +34,6 @@ type Sheet = {
 }
 
 type GroupBy = "none" | "visibility" | "owner" | "tag"
-
-const visibilityBadge = {
-  PRIVATE: { label: "Private", className: "bg-gray-100 text-gray-600 border-gray-200" },
-  SHARED:  { label: "Private", className: "bg-gray-100 text-gray-600 border-gray-200" },
-  PUBLIC:  { label: "Public",  className: "bg-black text-white border-black" },
-}
 
 // ── Tag Popover ──────────────────────────────────────────────────────────────
 
@@ -152,45 +145,31 @@ function TagAddPopover({
 // ── Sheet Row ────────────────────────────────────────────────────────────────
 
 function SheetRow({
-  sheet,
-  currentUserId,
-  allUsers,
-  availableTags,
-  onUpdate,
-  onDelete,
+  sheet, currentUserId, allUsers, availableTags, onUpdate, onDelete,
 }: {
-  sheet: Sheet
-  currentUserId: string
-  allUsers: User[]
-  availableTags: Tag[]
+  sheet: Sheet; currentUserId: string; allUsers: User[]; availableTags: Tag[]
   onUpdate: (id: string, patch: Partial<Sheet>) => void
   onDelete: (id: string) => void
 }) {
   const router = useRouter()
-  const vb = visibilityBadge[sheet.visibility]
   const isOwner = sheet.owner.id === currentUserId
+  const isPublic = sheet.visibility === "PUBLIC"
 
   const [shareOpen, setShareOpen] = useState(false)
   const [shareData, setShareData] = useState<{ id: string; userId: string; permission: string }[] | null>(null)
-  const [loadingShare, setLoadingShare] = useState(false)
 
-  async function openShare(e: React.MouseEvent) {
+  async function openShareUsers(e: React.MouseEvent) {
     e.stopPropagation()
     if (!shareData) {
-      setLoadingShare(true)
-      try {
-        const res = await fetch(`/api/music-sheets/${sheet.id}/shares`)
-        if (res.ok) setShareData(await res.json())
-      } finally {
-        setLoadingShare(false)
-      }
+      const res = await fetch(`/api/music-sheets/${sheet.id}/shares`)
+      if (res.ok) setShareData(await res.json())
     }
     setShareOpen(true)
   }
 
   async function toggleVisibility(e: React.MouseEvent) {
     e.stopPropagation()
-    const next = sheet.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC"
+    const next = isPublic ? "PRIVATE" : "PUBLIC"
     const res = await fetch(`/api/music-sheets/${sheet.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -236,85 +215,91 @@ function SheetRow({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 ml-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1.5 shrink-0 ml-4" onClick={(e) => e.stopPropagation()}>
           {/* Tags */}
           {sheet.tags.map(({ tag }) => (
-            <span
-              key={tag.id}
-              className="flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded border border-gray-200"
-            >
+            <span key={tag.id} className="flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded border border-gray-200">
               {tag.name}
               {isOwner && (
-                <button
-                  onClick={() => removeTag(tag.id)}
-                  className="ml-0.5 text-gray-400 hover:text-gray-700 transition-colors"
-                  title="Remove tag"
-                >
+                <button onClick={() => removeTag(tag.id)} className="ml-0.5 text-gray-400 hover:text-gray-700 transition-colors" title="Remove tag">
                   <X className="w-2.5 h-2.5" />
                 </button>
               )}
             </span>
           ))}
           {isOwner && (
-            <TagAddPopover
-              sheetId={sheet.id}
-              sheetTags={sheet.tags.map((t) => t.tag)}
-              availableTags={availableTags}
-              onAdd={addTag}
-            />
+            <TagAddPopover sheetId={sheet.id} sheetTags={sheet.tags.map((t) => t.tag)} availableTags={availableTags} onAdd={addTag} />
           )}
 
-          {/* Visibility badge */}
-          <Badge variant="outline" className={`text-xs ${vb.className}`}>{vb.label}</Badge>
+          <div className="w-px h-4 bg-gray-200 mx-0.5" />
 
-          {/* Comment count */}
-          {sheet._count.comments > 0 && (
-            <span className="flex items-center gap-1 text-xs text-gray-400">
-              <MessageSquare className="w-3 h-3" />
-              {sheet._count.comments}
+          {/* Visibility toggle */}
+          {isOwner ? (
+            <button onClick={toggleVisibility}
+              title={isPublic ? "Public — click to make private" : "Private — click to make public"}
+              className={`flex items-center gap-1 px-1.5 py-0.5 text-xs rounded border transition-colors ${isPublic ? "bg-black text-white border-black hover:bg-gray-700" : "bg-gray-100 text-gray-600 border-gray-200 hover:border-gray-400"}`}>
+              {isPublic ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+              {isPublic ? "Public" : "Private"}
+            </button>
+          ) : (
+            <span className={`flex items-center gap-1 px-1.5 py-0.5 text-xs rounded border ${isPublic ? "bg-black text-white border-black" : "bg-gray-100 text-gray-600 border-gray-200"}`}>
+              {isPublic ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+              {isPublic ? "Public" : "Private"}
             </span>
           )}
 
-          {/* Actions menu (owner only) */}
+          {/* Comments */}
+          {sheet._count.comments > 0 && (
+            <button onClick={(e) => { e.stopPropagation(); router.push(`/music-sheets/${sheet.id}`) }}
+              title="View comments"
+              className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-gray-400 rounded border border-transparent hover:border-gray-200 hover:bg-gray-100 transition-colors">
+              <MessageSquare className="w-3 h-3" />
+              {sheet._count.comments}
+            </button>
+          )}
+
+          {/* Owner-only actions */}
           {isOwner && (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                className="p-1 rounded text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
-                title="More actions"
-              >
-                <MoreHorizontal className="w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={toggleVisibility}>
-                  {sheet.visibility === "PUBLIC" ? (
-                    <><Lock className="w-3.5 h-3.5" /> Make private</>
-                  ) : (
-                    <><Globe className="w-3.5 h-3.5" /> Make public</>
-                  )}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={openShare} disabled={loadingShare}>
-                  <Share2 className="w-3.5 h-3.5" />
-                  {loadingShare ? "Loading..." : "Manage sharing"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={deleteSheet}>
-                  <Trash2 className="w-3.5 h-3.5" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              <button onClick={openShareUsers} title="Share with users"
+                className="p-1 rounded text-gray-400 border border-transparent hover:border-gray-200 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+                <Users className="w-3.5 h-3.5" />
+              </button>
+
+              <button onClick={deleteSheet} title="Delete sheet"
+                className="p-1 rounded text-gray-400 border border-transparent hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="p-1 rounded text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
+                  title="More">
+                  <MoreHorizontal className="w-4 h-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={toggleVisibility}>
+                    {isPublic ? <><Lock className="w-3.5 h-3.5" /> Make private</> : <><Globe className="w-3.5 h-3.5" /> Make public</>}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openShareUsers}>
+                    <Share2 className="w-3.5 h-3.5" /> Share with users
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="destructive" onClick={deleteSheet}>
+                    <Trash2 className="w-3.5 h-3.5" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           )}
         </div>
       </div>
 
-      {shareOpen && shareData && (
-        <ShareDialog
-          open={shareOpen}
-          onClose={() => setShareOpen(false)}
-          sheetId={sheet.id}
-          sheetType="music"
+      {shareOpen && shareData !== null && (
+        <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)}
+          sheetId={sheet.id} sheetType="music"
           allUsers={allUsers.filter((u) => u.id !== currentUserId)}
-          currentShares={shareData}
-        />
+          currentShares={shareData} />
       )}
     </>
   )

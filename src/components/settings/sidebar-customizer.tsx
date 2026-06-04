@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Rss, FileText, Music, Settings, ChevronUp, ChevronDown, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -33,6 +34,7 @@ export function SidebarCustomizer({
   isAdmin: boolean
 }) {
   const [items, setItems] = useState(() => applyPrefs(initialPrefs))
+  const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -64,6 +66,7 @@ export function SidebarCustomizer({
         }),
       })
       setSaved(true)
+      router.refresh()
     } finally {
       setSaving(false)
     }
