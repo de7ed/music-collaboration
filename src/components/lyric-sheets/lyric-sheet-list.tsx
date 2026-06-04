@@ -418,6 +418,9 @@ export function LyricSheetList({
   useEffect(() => { router.refresh() }, [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [sheets, setSheets] = useState(initialSheets)
+
+  // Sync state when server re-renders with fresh data (e.g. after router.refresh())
+  useEffect(() => { setSheets(initialSheets) }, [initialSheets])
   const [search, setSearch] = useState("")
   const [ownershipFilter, setOwnershipFilter] = useState<"all" | "mine" | "shared">("all")
   const [visibilityFilter, setVisibilityFilter] = useState("")
