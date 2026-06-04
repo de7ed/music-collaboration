@@ -1,0 +1,301 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum UserRole {
+  ADMIN
+  STANDARD
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+enum Visibility {
+  PRIVATE
+  SHARED
+  PUBLIC
+}
+
+enum SharePermission {
+  VIEWER
+  EDITOR
+}
+
+enum NotificationType {
+  MENTIONED_IN_COMMENT
+  NEW_COMMENT_ON_OWNED
+  NEW_COMMENT_ON_SHARED
+  NEW_COMMENT_ON_PUBLIC
+  ACCOUNT_APPROVED
+  ACCOUNT_REJECTED
+  INVITE_ACCEPTED
+}
+
+enum AdminActionType {
+  APPROVE_USER
+  REJECT_USER
+  SUSPEND_USER
+  CHANGE_ROLE
+}
+
+// ─── Users ────────────────────────────────────────────────────
+
+model User {
+  id          String     @id @default(cuid())
+  clerkId     String     @unique
+  email       String     @unique
+  name        String?
+  avatarUrl   String?
+  role        UserRole   @default(STANDARD)
+  status      UserStatus @default(PENDING)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  invitedById String?
+  invitedBy   User?  @relation("Invites", fields: [invitedById], references: [id])
+  invitesSent User[] @relation("Invites")
+
+  lyricSheets      LyricSheet[]      @relation("Owner")
+  musicSheets      MusicSheet[]      @relation("Owner")
+  lyricSheetShares LyricSheetShare[]
+  musicSheetShares MusicSheetShare[]
+  comments         Comment[]
+  commentMentions  CommentMention[]
+  notifications    Notification[]
+  notifPreferences NotificationPreference?
+  adminActions     AdminAction[]
+  invitesSentOut   Invite[]
+
+  @@index([status])
+  @@index([email])
+}
+
+// ─── Invites ──────────────────────────────────────────────────
+
+model Invite {
+  id          String       @id @default(cuid())
+  email       String
+  token       String       @unique @default(cuid())
+  status      InviteStatus @default(PENDING)
+  invitedById String
+  invitedBy   User         @relation(fields: [invitedById], references: [id])
+  expiresAt   DateTime
+  createdAt   DateTime     @default(now())
+
+  @@index([token])
+  @@index([email])
+}
+
+// ─── Tags ─────────────────────────────────────────────────────
+
+model Tag {
+  id   String @id @default(cuid())
+  name String @unique
+
+  lyricSheetTags LyricSheetTag[]
+  musicSheetTags MusicSheetTag[]
+}
+
+// ─── Lyric Sheets ─────────────────────────────────────────────
+
+model LyricSheet {
+  id         String     @id @default(cuid())
+  title      String
+  ownerId    String
+  owner      User       @relation("Owner", fields: [ownerId], references: [id])
+  visibility Visibility @default(PRIVATE)
+  content    Json       @default("{}")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  versions    LyricSheetVersion[]
+  shares      LyricSheetShare[]
+  tags        LyricSheetTag[]
+  comments    Comment[]           @relation("LyricSheetComments")
+  musicSheets MusicSheet[]
+
+  @@index([ownerId])
+  @@index([visibility])
+}
+
+model LyricSheetVersion {
+  id           String     @id @default(cuid())
+  lyricSheetId String
+  lyricSheet   LyricSheet @relation(fields: [lyricSheetId], references: [id], onDelete: Cascade)
+  content      Json
+  isCheckIn    Boolean    @default(false)
+  message      String?
+  createdById  String
+  createdAt    DateTime   @default(now())
+
+  @@index([lyricSheetId, createdAt])
+  @@index([lyricSheetId, isCheckIn])
+}
+
+model LyricSheetShare {
+  id           String          @id @default(cuid())
+  lyricSheetId String
+  lyricSheet   LyricSheet      @relation(fields: [lyricSheetId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+  permission   SharePermission @default(VIEWER)
+  createdAt    DateTime        @default(now())
+
+  @@unique([lyricSheetId, userId])
+  @@index([userId])
+}
+
+model LyricSheetTag {
+  lyricSheetId String
+  lyricSheet   LyricSheet @relation(fields: [lyricSheetId], references: [id], onDelete: Cascade)
+  tagId        String
+  tag          Tag        @relation(fields: [tagId], references: [id])
+
+  @@id([lyricSheetId, tagId])
+}
+
+// ─── Music Sheets ─────────────────────────────────────────────
+
+model MusicSheet {
+  id         String     @id @default(cuid())
+  title      String
+  ownerId    String
+  owner      User       @relation("Owner", fields: [ownerId], references: [id])
+  visibility Visibility @default(PRIVATE)
+  fileKey    String
+  mimeType   String
+  sizeBytes  Int
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  lyricSheetId String?
+  lyricSheet   LyricSheet? @relation(fields: [lyricSheetId], references: [id])
+
+  shares   MusicSheetShare[]
+  tags     MusicSheetTag[]
+  comments Comment[]         @relation("MusicSheetComments")
+
+  @@index([ownerId])
+  @@index([lyricSheetId])
+}
+
+model MusicSheetShare {
+  id           String          @id @default(cuid())
+  musicSheetId String
+  musicSheet   MusicSheet      @relation(fields: [musicSheetId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+  permission   SharePermission @default(VIEWER)
+  createdAt    DateTime        @default(now())
+
+  @@unique([musicSheetId, userId])
+}
+
+model MusicSheetTag {
+  musicSheetId String
+  musicSheet   MusicSheet @relation(fields: [musicSheetId], references: [id], onDelete: Cascade)
+  tagId        String
+  tag          Tag        @relation(fields: [tagId], references: [id])
+
+  @@id([musicSheetId, tagId])
+}
+
+// ─── Comments ─────────────────────────────────────────────────
+
+model Comment {
+  id      String @id @default(cuid())
+  authorId String
+  author  User   @relation(fields: [authorId], references: [id])
+  content String
+
+  lyricSheetId String?
+  lyricSheet   LyricSheet? @relation("LyricSheetComments", fields: [lyricSheetId], references: [id])
+  musicSheetId String?
+  musicSheet   MusicSheet? @relation("MusicSheetComments", fields: [musicSheetId], references: [id])
+
+  parentId String?
+  parent   Comment?  @relation("Replies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("Replies")
+
+  anchor    Json?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  mentionedUsers CommentMention[]
+
+  @@index([lyricSheetId])
+  @@index([musicSheetId])
+  @@index([parentId])
+}
+
+model CommentMention {
+  commentId String
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@id([commentId, userId])
+}
+
+// ─── Notifications ────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  type      NotificationType
+  readAt    DateTime?
+  payload   Json
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+model NotificationPreference {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id])
+
+  inAppMentioned        Boolean @default(true)
+  inAppNewCommentOwned  Boolean @default(true)
+  inAppNewCommentShared Boolean @default(true)
+  inAppNewCommentPublic Boolean @default(false)
+
+  emailMentioned        Boolean @default(true)
+  emailNewCommentOwned  Boolean @default(true)
+  emailNewCommentShared Boolean @default(false)
+  emailNewCommentPublic Boolean @default(false)
+}
+
+// ─── Admin Audit Log ──────────────────────────────────────────
+
+model AdminAction {
+  id         String          @id @default(cuid())
+  adminId    String
+  admin      User            @relation(fields: [adminId], references: [id])
+  actionType AdminActionType
+  targetId   String
+  note       String?
+  createdAt  DateTime        @default(now())
+
+  @@index([adminId])
+  @@index([targetId])
+}
