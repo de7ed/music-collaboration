@@ -72,6 +72,8 @@ model User {
   invitedBy   User?  @relation("Invites", fields: [invitedById], references: [id])
   invitesSent User[] @relation("Invites")
 
+  sidebarPreferences Json?
+
   lyricSheets      LyricSheet[]      @relation("Owner")
   musicSheets      MusicSheet[]      @relation("Owner")
   lyricSheetShares LyricSheetShare[]

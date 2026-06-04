@@ -50,7 +50,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     }))}>
       <SSEProvider />
       <div className="flex h-screen overflow-hidden bg-white">
-        <Sidebar isAdmin={user.role === "ADMIN"} />
+        <Sidebar
+          isAdmin={user.role === "ADMIN"}
+          sidebarPrefs={(user.sidebarPreferences ?? null) as { order: string[]; hidden: string[] } | null}
+        />
         <div className="flex-1 flex flex-col overflow-hidden">
           <header className="h-12 border-b border-gray-200 flex items-center justify-end pl-12 pr-4 md:pl-4 gap-2 shrink-0">
             <NotificationBell />

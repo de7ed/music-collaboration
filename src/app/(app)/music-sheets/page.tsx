@@ -16,16 +16,24 @@ export default async function MusicSheetsPage() {
     include: {
       owner: { select: { id: true, name: true, email: true } },
       tags: { include: { tag: true } },
+      shares: { where: { userId: user.id }, select: { id: true } },
       lyricSheet: { select: { id: true, title: true } },
-      _count: { select: { comments: true } },
+      _count: { select: { comments: { where: { deletedAt: null } } } },
     },
     orderBy: { updatedAt: "desc" },
   })
 
-  const tags = await prisma.tag.findMany({
-    where: { musicSheetTags: { some: {} } },
-    orderBy: { name: "asc" },
-  })
+  const [tags, allUsers] = await Promise.all([
+    prisma.tag.findMany({
+      where: { OR: [{ lyricSheetTags: { some: {} } }, { musicSheetTags: { some: {} } }] },
+      orderBy: { name: "asc" },
+    }),
+    prisma.user.findMany({
+      where: { status: "ACTIVE" },
+      select: { id: true, name: true, email: true },
+      orderBy: { name: "asc" },
+    }),
+  ])
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -37,6 +45,7 @@ export default async function MusicSheetsPage() {
         }))}
         currentUserId={user.id}
         availableTags={tags}
+        allUsers={allUsers}
       />
     </div>
   )
