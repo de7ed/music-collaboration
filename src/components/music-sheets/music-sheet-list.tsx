@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { Plus, Music, MessageSquare, X, Globe, Lock, Trash2, Tag as TagIcon, Users, LogOut } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
@@ -398,6 +398,11 @@ export function MusicSheetList({
   availableTags: Tag[]
   allUsers: User[]
 }) {
+  const router = useRouter()
+  const pathname = usePathname()
+
+  useEffect(() => { router.refresh() }, [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [sheets, setSheets] = useState(initialSheets)
   const [search, setSearch] = useState("")
   const [ownershipFilter, setOwnershipFilter] = useState<"all" | "mine" | "shared">("all")

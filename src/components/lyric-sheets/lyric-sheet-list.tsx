@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Plus, FileText, MessageSquare, X, Globe, Lock, Trash2, Tag as TagIcon, Link2, Users, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -412,6 +412,11 @@ export function LyricSheetList({
   initialSheets: Sheet[]; currentUserId: string; availableTags: Tag[]; allUsers: User[]
 }) {
   const router = useRouter()
+  const pathname = usePathname()
+
+  // Refresh server data each time the list mounts so counts (comments, etc.) stay current
+  useEffect(() => { router.refresh() }, [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [sheets, setSheets] = useState(initialSheets)
   const [search, setSearch] = useState("")
   const [ownershipFilter, setOwnershipFilter] = useState<"all" | "mine" | "shared">("all")
