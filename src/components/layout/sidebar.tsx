@@ -82,7 +82,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
         mobileOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-between px-4 py-5 border-b border-gray-200">
-          <span className="font-bold text-sm tracking-tight">Music Collab</span>
+          <span className="font-bold text-sm tracking-tight">Riff Session</span>
           <button onClick={() => setMobileOpen(false)} className="p-1 rounded hover:bg-gray-200">
             <X className="w-4 h-4" />
           </button>
@@ -93,7 +93,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-56 shrink-0 border-r border-gray-200 bg-gray-50 flex-col h-full">
         <div className="px-4 py-5 border-b border-gray-200">
-          <span className="font-bold text-sm tracking-tight">Music Collab</span>
+          <span className="font-bold text-sm tracking-tight">Riff Session</span>
         </div>
         <NavLinks isAdmin={isAdmin} />
       </aside>

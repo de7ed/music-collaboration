@@ -24,8 +24,8 @@ export async function sendInviteEmail({
   await getResend().emails.send({
     from: getFrom(),
     to,
-    subject: `${inviterName} invited you to Music Collab`,
-    html: `<p>${inviterName} has invited you to join Music Collab.</p><p><a href="${url}">Accept invitation</a></p>`,
+    subject: `${inviterName} invited you to Riff Session`,
+    html: `<p>${inviterName} has invited you to join Riff Session.</p><p><a href="${url}">Accept invitation</a></p>`,
   })
 }
 
@@ -33,7 +33,7 @@ export async function sendApprovalEmail({ to, name }: { to: string; name: string
   await getResend().emails.send({
     from: getFrom(),
     to,
-    subject: "Your Music Collab account has been approved",
+    subject: "Your Riff Session account has been approved",
     html: `<p>Hi ${name},</p><p>Your account has been approved. <a href="${process.env.NEXT_PUBLIC_APP_URL}/sign-in">Sign in now</a></p>`,
   })
 }
@@ -42,7 +42,7 @@ export async function sendRejectionEmail({ to, name }: { to: string; name: strin
   await getResend().emails.send({
     from: getFrom(),
     to,
-    subject: "Music Collab account update",
+    subject: "Riff Session account update",
     html: `<p>Hi ${name},</p><p>Unfortunately your account request was not approved. Contact the admin if you think this is a mistake.</p>`,
   })
 }
@@ -63,7 +63,7 @@ export async function sendNotificationEmail({
     NEW_COMMENT_ON_PUBLIC: "New comment on a public sheet",
   }
 
-  const subject = subjects[type] ?? "Music Collab notification"
+  const subject = subjects[type] ?? "Riff Session notification"
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
   const sheetUrl = payload.lyricSheetId
     ? `${appUrl}/lyric-sheets/${payload.lyricSheetId}`

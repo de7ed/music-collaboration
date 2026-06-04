@@ -1,4 +1,4 @@
-# Music Collab
+# Riff Session
 
 A private, invite-only web app for bands and collaborators to write, share, and refine lyrics and sheet music together in real-time.
 
@@ -142,7 +142,7 @@ Logged-out visitors see:
 - Comments thread read-only
 - "Sign up to comment" prompt if they try to reply
 
-Logged-in collaborators see a button to "Open in Music Collab" to edit.
+Logged-in collaborators see a button to "Open in Riff Session" to edit.
 
 ## Troubleshooting
 

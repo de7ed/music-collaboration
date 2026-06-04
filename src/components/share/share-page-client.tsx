@@ -91,7 +91,7 @@ function CommentCTA({ viewer, sheetId }: { viewer: { id: string } | null; sheetI
         className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
       >
         <LogIn className="w-3.5 h-3.5 mr-1.5" />
-        Open in Music Collab to comment
+        Open in Riff Session to comment
       </Link>
     )
   }
@@ -161,7 +161,7 @@ export function SharePageClient({
         <div className="flex items-center gap-2 min-w-0">
           <Music2 className="w-4 h-4 text-gray-400 shrink-0" />
           <span className="text-xs text-gray-500 truncate">
-            Shared on <span className="font-medium text-black">Music Collab</span>
+            Shared on <span className="font-medium text-black">Riff Session</span>
             <span className="hidden sm:inline"> — a private workspace for bands and collaborators</span>
           </span>
         </div>

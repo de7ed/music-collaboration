@@ -6,7 +6,7 @@ export default function LandingPage() {
   return (
     <div className="w-full max-w-md space-y-10 text-center">
       <div className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight">Music Collab</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Riff Session</h1>
         <p className="text-gray-500 text-sm leading-relaxed">
           A private workspace for bands and collaborators to write, share, and
           refine lyrics and sheet music together.
