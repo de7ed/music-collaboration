@@ -3,18 +3,11 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Plus, Music, MessageSquare, MoreHorizontal, X, Globe, Lock, Share2, Trash2, Tag as TagIcon, Users } from "lucide-react"
+import { Plus, Music, MessageSquare, X, Globe, Lock, Trash2, Tag as TagIcon, Users } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn, formatDistanceToNow, formatBytes } from "@/lib/utils"
 import { ShareDialog } from "@/components/lyric-sheets/sharing/share-dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 type Tag = { id: string; name: string }
 type User = { id: string; name: string | null; email: string }
@@ -271,25 +264,6 @@ function SheetRow({
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className="p-1 rounded text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
-                  title="More">
-                  <MoreHorizontal className="w-4 h-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={toggleVisibility}>
-                    {isPublic ? <><Lock className="w-3.5 h-3.5" /> Make private</> : <><Globe className="w-3.5 h-3.5" /> Make public</>}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={openShareUsers}>
-                    <Share2 className="w-3.5 h-3.5" /> Share with users
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive" onClick={deleteSheet}>
-                    <Trash2 className="w-3.5 h-3.5" /> Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </>
           )}
         </div>

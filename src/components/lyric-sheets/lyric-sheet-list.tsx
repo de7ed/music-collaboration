@@ -2,19 +2,12 @@
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, FileText, MessageSquare, MoreHorizontal, X, Globe, Lock, Share2, Trash2, Tag as TagIcon, Link2, Users } from "lucide-react"
+import { Plus, FileText, MessageSquare, X, Globe, Lock, Trash2, Tag as TagIcon, Link2, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { formatDistanceToNow } from "@/lib/utils"
 import { ShareDialog } from "@/components/lyric-sheets/sharing/share-dialog"
 import { ShareLinkModal } from "@/components/lyric-sheets/sharing/share-link-modal"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 type Tag = { id: string; name: string }
 type User = { id: string; name: string | null; email: string }
@@ -319,30 +312,6 @@ function SheetRow({
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
 
-              {/* Overflow menu (kept for discoverability) */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className="p-1 rounded text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
-                  title="More"
-                >
-                  <MoreHorizontal className="w-4 h-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={toggleVisibility}>
-                    {isPublic ? <><Lock className="w-3.5 h-3.5" /> Make private</> : <><Globe className="w-3.5 h-3.5" /> Make public</>}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setShareLinkOpen(true) }}>
-                    <Link2 className="w-3.5 h-3.5" /> Share link
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={openShareUsers}>
-                    <Share2 className="w-3.5 h-3.5" /> Share with users
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive" onClick={deleteSheet}>
-                    <Trash2 className="w-3.5 h-3.5" /> Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </>
           )}
         </div>
