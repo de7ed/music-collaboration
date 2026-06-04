@@ -1,6 +1,5 @@
 "use client"
 
-import type { Editor } from "@tiptap/react"
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered } from "lucide-react"
 import { cn } from "@/lib/utils"
 

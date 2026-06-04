@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { GitCommitHorizontal, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { formatDistanceToNow } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 
@@ -19,7 +18,6 @@ export function VersionHistory({
   versions,
   sheetId,
   isOwner,
-  currentUserId,
 }: {
   versions: Version[]
   sheetId: string

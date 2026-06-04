@@ -33,13 +33,10 @@ interface Sheet {
   owner: User
 }
 
-const visibilityLabels = { PRIVATE: "Private", SHARED: "Shared", PUBLIC: "Public" }
-
 export function LyricSheetEditor({
   sheet,
   permission,
   isOwner,
-  currentUserId,
   allUsers,
 }: {
   sheet: Sheet

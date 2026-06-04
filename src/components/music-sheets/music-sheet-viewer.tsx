@@ -30,8 +30,6 @@ interface Sheet {
 export function MusicSheetViewer({
   sheet,
   isOwner,
-  permission,
-  currentUserId,
   allUsers,
 }: {
   sheet: Sheet

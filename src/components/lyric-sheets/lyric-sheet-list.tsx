@@ -141,7 +141,7 @@ export function LyricSheetList({
   availableTags: Tag[]
 }) {
   const router = useRouter()
-  const [sheets, setSheets] = useState(initialSheets)
+  const [sheets] = useState(initialSheets)
   const [search, setSearch] = useState("")
   const [ownershipFilter, setOwnershipFilter] = useState<"all" | "mine" | "shared">("all")
   const [visibilityFilter, setVisibilityFilter] = useState("")
