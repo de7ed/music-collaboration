@@ -17,6 +17,7 @@ export default async function LyricSheetsPage() {
       include: {
         owner: { select: { id: true, name: true, email: true } },
         tags: { include: { tag: true } },
+        shares: { where: { userId: user.id }, select: { id: true } },
         _count: { select: { comments: true } },
       },
       orderBy: { updatedAt: "desc" },

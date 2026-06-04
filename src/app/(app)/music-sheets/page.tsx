@@ -16,6 +16,7 @@ export default async function MusicSheetsPage() {
     include: {
       owner: { select: { id: true, name: true, email: true } },
       tags: { include: { tag: true } },
+      shares: { where: { userId: user.id }, select: { id: true } },
       lyricSheet: { select: { id: true, title: true } },
       _count: { select: { comments: true } },
     },

@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Plus, Music, MessageSquare, X, Globe, Lock, Trash2, Tag as TagIcon, Users } from "lucide-react"
+import { Plus, Music, MessageSquare, X, Globe, Lock, Trash2, Tag as TagIcon, Users, LogOut } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn, formatDistanceToNow, formatBytes } from "@/lib/utils"
@@ -22,6 +22,7 @@ type Sheet = {
   updatedAt: string
   owner: { id: string; name: string | null; email: string }
   tags: Array<{ tag: Tag }>
+  shares: Array<{ id: string }>
   lyricSheet: { id: string; title: string } | null
   _count: { comments: number }
 }
@@ -147,6 +148,14 @@ function SheetRow({
   const router = useRouter()
   const isOwner = sheet.owner.id === currentUserId
   const isPublic = sheet.visibility === "PUBLIC"
+  const isSharedWithMe = !isOwner && sheet.shares.length > 0
+
+  async function leaveSheet(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!confirm(`Remove yourself from "${sheet.title}"? You'll lose access unless it's public.`)) return
+    const res = await fetch(`/api/music-sheets/${sheet.id}/leave`, { method: "DELETE" })
+    if (res.ok) onDelete(sheet.id)
+  }
 
   const [shareOpen, setShareOpen] = useState(false)
   const [shareData, setShareData] = useState<{ id: string; userId: string; permission: string }[] | null>(null)
@@ -258,13 +267,19 @@ function SheetRow({
                 className="p-1 rounded text-gray-400 border border-transparent hover:border-gray-200 hover:bg-gray-100 hover:text-gray-700 transition-colors">
                 <Users className="w-3.5 h-3.5" />
               </button>
-
               <button onClick={deleteSheet} title="Delete sheet"
                 className="p-1 rounded text-gray-400 border border-transparent hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
-
             </>
+          )}
+
+          {/* Leave option for explicitly shared-with-me sheets */}
+          {isSharedWithMe && (
+            <button onClick={leaveSheet} title="Remove myself from this sheet"
+              className="p-1 rounded text-gray-400 border border-transparent hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors">
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           )}
         </div>
       </div>

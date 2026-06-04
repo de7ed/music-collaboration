@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, FileText, MessageSquare, X, Globe, Lock, Trash2, Tag as TagIcon, Link2, Users } from "lucide-react"
+import { Plus, FileText, MessageSquare, X, Globe, Lock, Trash2, Tag as TagIcon, Link2, Users, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { formatDistanceToNow } from "@/lib/utils"
@@ -20,6 +20,7 @@ type Sheet = {
   updatedAt: string
   owner: { id: string; name: string | null; email: string }
   tags: Array<{ tag: Tag }>
+  shares: Array<{ id: string }>
   _count: { comments: number }
   content?: unknown
 }
@@ -196,6 +197,14 @@ function SheetRow({
   }
 
   const isPublic = sheet.visibility === "PUBLIC"
+  const isSharedWithMe = !isOwner && sheet.shares.length > 0
+
+  async function leaveSheet(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!confirm(`Remove yourself from "${sheet.title}"? You'll lose access unless it's public.`)) return
+    const res = await fetch(`/api/lyric-sheets/${sheet.id}/leave`, { method: "DELETE" })
+    if (res.ok) onDelete(sheet.id)
+  }
 
   return (
     <>
@@ -285,34 +294,27 @@ function SheetRow({
           {/* Owner-only actions */}
           {isOwner && (
             <>
-              {/* Share link */}
-              <button
-                onClick={(e) => { e.stopPropagation(); setShareLinkOpen(true) }}
-                title="Share link"
-                className="p-1 rounded text-gray-400 border border-transparent hover:border-gray-200 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-              >
+              <button onClick={(e) => { e.stopPropagation(); setShareLinkOpen(true) }} title="Share link"
+                className="p-1 rounded text-gray-400 border border-transparent hover:border-gray-200 hover:bg-gray-100 hover:text-gray-700 transition-colors">
                 <Link2 className="w-3.5 h-3.5" />
               </button>
-
-              {/* Share with users */}
-              <button
-                onClick={openShareUsers}
-                title="Share with users"
-                className="p-1 rounded text-gray-400 border border-transparent hover:border-gray-200 hover:bg-gray-100 hover:text-gray-700 transition-colors"
-              >
+              <button onClick={openShareUsers} title="Share with users"
+                className="p-1 rounded text-gray-400 border border-transparent hover:border-gray-200 hover:bg-gray-100 hover:text-gray-700 transition-colors">
                 <Users className="w-3.5 h-3.5" />
               </button>
-
-              {/* Delete */}
-              <button
-                onClick={deleteSheet}
-                title="Delete sheet"
-                className="p-1 rounded text-gray-400 border border-transparent hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors"
-              >
+              <button onClick={deleteSheet} title="Delete sheet"
+                className="p-1 rounded text-gray-400 border border-transparent hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
-
             </>
+          )}
+
+          {/* Leave option for explicitly shared-with-me sheets */}
+          {isSharedWithMe && (
+            <button onClick={leaveSheet} title="Remove myself from this sheet"
+              className="p-1 rounded text-gray-400 border border-transparent hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition-colors">
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           )}
         </div>
       </div>
