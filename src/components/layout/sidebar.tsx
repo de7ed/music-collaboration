@@ -7,23 +7,48 @@ import { Rss, FileText, Music, Settings, ShieldCheck, Menu, X } from "lucide-rea
 import { cn } from "@/lib/utils"
 import { useNotifications } from "@/context/notification-context"
 
-const navItems = [
+type NavItemDef = { href: string; label: string; icon: React.ElementType }
+
+const DEFAULT_ITEMS: NavItemDef[] = [
   { href: "/feed",         label: "Feed",         icon: Rss      },
   { href: "/lyric-sheets", label: "Lyric Sheets", icon: FileText },
   { href: "/music-sheets", label: "Music Sheets", icon: Music    },
   { href: "/settings",     label: "Settings",     icon: Settings },
 ]
 
-function NavLinks({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () => void }) {
+type SidebarPrefs = { order: string[]; hidden: string[] } | null
+
+function buildNavItems(prefs: SidebarPrefs): NavItemDef[] {
+  if (!prefs) return DEFAULT_ITEMS
+  const hidden = new Set(prefs.hidden)
+  const order = prefs.order
+  const sorted = order
+    .map((key) => DEFAULT_ITEMS.find((i) => i.href === key))
+    .filter((i): i is NavItemDef => !!i && !hidden.has(i.href))
+  // Append any items missing from saved order
+  DEFAULT_ITEMS.forEach((item) => {
+    if (!sorted.some((s) => s.href === item.href) && !hidden.has(item.href)) {
+      sorted.push(item)
+    }
+  })
+  return sorted
+}
+
+function NavLinks({
+  isAdmin,
+  prefs,
+  onNavigate,
+}: {
+  isAdmin: boolean
+  prefs: SidebarPrefs
+  onNavigate?: () => void
+}) {
   const pathname = usePathname()
   const { unreadCount } = useNotifications()
-
-  const items = isAdmin
-    ? [...navItems, { href: "/admin/users", label: "Admin", icon: ShieldCheck }]
-    : navItems
+  const items = buildNavItems(prefs)
 
   return (
-    <nav className="flex-1 px-2 py-4 space-y-0.5">
+    <nav className="flex-1 px-2 py-4 flex flex-col space-y-0.5">
       {items.map(({ href, label, icon: Icon }) => {
         const isActive = pathname.startsWith(href)
         const showBadge = href === "/feed" && unreadCount > 0
@@ -50,11 +75,35 @@ function NavLinks({ isAdmin, onNavigate }: { isAdmin: boolean; onNavigate?: () =
           </Link>
         )
       })}
+
+      {/* Admin section — always pinned at bottom, admin only */}
+      {isAdmin && (
+        <div className="pt-3 mt-auto">
+          <p className="px-3 pb-1 text-[10px] font-medium text-gray-400 uppercase tracking-wide">Admin</p>
+          <Link
+            href="/settings#admin"
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+              pathname.startsWith("/settings") ? "bg-black text-white" : "text-gray-700 hover:bg-gray-200"
+            )}
+          >
+            <ShieldCheck className="w-4 h-4 shrink-0" />
+            <span className="flex-1">User Management</span>
+          </Link>
+        </div>
+      )}
     </nav>
   )
 }
 
-export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
+export function Sidebar({
+  isAdmin = false,
+  sidebarPrefs = null,
+}: {
+  isAdmin?: boolean
+  sidebarPrefs?: SidebarPrefs
+}) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
@@ -87,7 +136,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
             <X className="w-4 h-4" />
           </button>
         </div>
-        <NavLinks isAdmin={isAdmin} onNavigate={() => setMobileOpen(false)} />
+        <NavLinks isAdmin={isAdmin} prefs={sidebarPrefs} onNavigate={() => setMobileOpen(false)} />
       </aside>
 
       {/* Desktop sidebar */}
@@ -95,7 +144,7 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
         <div className="px-4 py-5 border-b border-gray-200">
           <span className="font-bold text-sm tracking-tight">Riff Session</span>
         </div>
-        <NavLinks isAdmin={isAdmin} />
+        <NavLinks isAdmin={isAdmin} prefs={sidebarPrefs} />
       </aside>
     </>
   )
